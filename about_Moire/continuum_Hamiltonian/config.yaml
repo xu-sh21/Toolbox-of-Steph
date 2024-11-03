@@ -1,0 +1,13 @@
+kpoints:
+  hsp: {
+    1: ['Gamma', 'M'],
+    2: ['M', 'K'],
+    3: ['K', 'Gamma']
+  }
+  k_loop: 5
+  density: 1000
+
+plot:
+  plot_mode: 'band'
+  # Choice: 'band' / 'form_factor' / 'both'
+  emin: -10
