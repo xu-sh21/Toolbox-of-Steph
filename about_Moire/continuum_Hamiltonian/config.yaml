@@ -4,10 +4,11 @@ kpoints:
     2: ['M', 'K'],
     3: ['K', 'Gamma']
   }
-  k_loop: 5
-  density: 1000
+  k_loop: 1
+  density_for_band: 1000
+  density_for_ff: 50
 
 plot:
-  plot_mode: 'band'
+  plot_mode: 'form_factor'
   # Choice: 'band' / 'form_factor' / 'both'
   emin: -10

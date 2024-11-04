@@ -175,7 +175,72 @@ import numpy as np
 # print(Delta_T)
 
 
-a = np.zeros((4,2))
-b = np.array([[1,3],[1,1]])
-a[:,:] = b[:,None,:]
-print(a)
+# a = np.zeros((4,2))
+# b = np.array([[1,3],[1,1]])
+# a[:,:] = b[:,None,:]
+# print(a)
+
+# t = np.linspace(0, 1, 5)
+# X, Y = np.meshgrid(t, t)
+# coef = np.vstack((X.ravel(), Y.ravel())).T
+# print(coef)
+
+# a = np.array([2,0])
+# b = np.array([0,2])
+# c = np.array([[2,0],[0,2]])
+# r = coef[:,]@c
+# print(r)
+
+# original_array = np.array([[1, 2], [3, 4]])
+
+# # 方法1: 使用 np.repeat
+# # 在第二个维度上重复2次
+# expanded_array_repeat = np.repeat(original_array[:, np.newaxis, :], 2, axis=1)
+
+
+# print("使用 np.repeat 扩充的数组:")
+# print(expanded_array_repeat)
+# print(np.zeros(expanded_array_repeat.shape))
+
+import numpy as np
+
+# # 假设 A 是一个形状为 (n, m, m) 的三维数组
+# n, m = 3, 2  # 示例维度
+# A = np.array([[[1,2],[2,3]],[[3,4],[2,1]],[[4,2],[1,2]]])  # 随机生成 n 个 m×m 矩阵
+# B = np.array([[[1,0],[0,-2]],[[0,4],[2,0]],[[4,0],[0,1]]])
+# print(A.shape) #
+# # 使用 numpy.linalg.eig 计算所有矩阵的本征值和本征向量
+# # 结果会是一个包含本征值的数组和一个包含本征向量的数组
+# eigenvalues, eigenvectors = np.linalg.eig(B)
+# print(eigenvalues) #
+
+# # eigenvalues 和 eigenvectors 的形状分别是 (3, 2) 和 (3, 2, 2)
+
+# # 对每个方阵的特征值进行排序，得到排序后的索引
+# # sorted_indices = np.argsort(eigenvalues, axis=1)
+
+# # 使用高级索引重组特征向量和特征值
+# # 对于特征值
+# sorted_indices = np.argsort(eigenvalues, axis=1)
+# print(sorted_indices)
+# # print(eigenvectors)
+# # 使用高级索引重组特征向量和特征值
+# # 对于特征值
+# sorted_eigenvalues = np.take_along_axis(eigenvalues, sorted_indices, axis=1).squeeze()
+# print(sorted_eigenvalues.shape)
+# print(eigenvectors)
+# # 对于特征向量
+# # 由于特征向量是三维数组，我们需要为每个矩阵的每个特征值创建一个索引数组
+# indices_for_eigenvectors = np.arange(sorted_indices.shape[1])[:, np.newaxis]
+# # print(indices_for_eigenvectors)
+# sorted_eigenvectors = np.take_along_axis(eigenvectors, sorted_indices[:, np.newaxis, :], axis=2)
+# print(sorted_eigenvectors)
+# print(sorted_eigenvectors[:,:,-1])
+# # 现在sorted_eigenvalues 和 sorted_eigenvectors 是按照特征值大小排序的
+
+A = np.array([[13, 1],[2, 2+1j]],dtype=np.complex_)
+print(A)
+# print(A.conj().T)
+B = np.dot(A.conj(), A.T).T
+
+print(B)
