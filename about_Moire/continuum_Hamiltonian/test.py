@@ -241,6 +241,7 @@ import numpy as np
 A = np.array([[13, 1],[2, 2+1j]],dtype=np.complex_)
 print(A)
 # print(A.conj().T)
-B = np.dot(A.conj(), A.T).T
+# B = np.dot(A.conj(), A.T).T
 
-print(B)
+A = np.delete(A, [1], axis=0)
+print(A)

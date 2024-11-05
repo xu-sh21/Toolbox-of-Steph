@@ -106,6 +106,11 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
     
 
     def set_k_for_band(self):
+        print("----------------------------------------------------------------")
+        print(f"Begin set k points for mode band!")
+        self.begin_k = datetime.now()
+        print(f"Begin time:{self.begin_k}")
+
         self.k_lengths_band = [np.linalg.norm(self.find_coord(self.hsp[i][1]) - self.find_coord(self.hsp[i][0])) for i in range(1, self.num_path + 1)]
         self.point_num_band = np.int_(np.round(np.asarray(self.k_lengths_band) * self.density_for_band))
         # print(self.point_num)
@@ -143,56 +148,66 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
     
 
     def set_k_for_ff(self):
+        print("----------------------------------------------------------------")
+        print(f"Begin set k points for mode form factor!")
+        self.begin_k = datetime.now()
+        print(f"Begin time:{self.begin_k}")
+
         G_1 = G_vec_unit[1]
         G_2 = G_vec_unit[2]
         G_arr = np.array([G_1,G_2])
         t = np.linspace(0, 1, self.density_for_ff + 1)
         X, Y = np.meshgrid(t, t)
         self.coef_within_fbz = np.vstack((X.ravel(), Y.ravel())).T
+        # print(self.coef_within_fbz)
         self.coord_within_fbz = self.coef_within_fbz[:,] @ G_arr
-        self.transition(self.coord_within_fbz)
+        # print(self.coord_within_fbz)
+        self.coord_within_fbz = self.transition(self.coord_within_fbz)
+        # print(self.coord_within_fbz)
         self.kpoints_all_ff = self.coord_within_fbz * coef_G
         self.kpoints_all_ff = np.repeat(self.kpoints_all_ff[:, np.newaxis, :], self.group_num, axis=1)
         self.point_num_ff_tot = self.kpoints_all_ff.shape[0]
         self.kpoints_all_ff_coef = np.zeros(self.kpoints_all_ff.shape, dtype=int)
         self.kpoints_all_ff_coef[:, 1:, :] = self.expand_k
+
+
     # def transition(self, coords):
     #     # This function is to move k points in unit cell in k-space into first Brillouin zone.
     #     to_delete = []
     #     for i in range(coords.shape[0]):
     #         x = coords[i,0]
     #         y = coords[i,1]
-    #         if (x <= 1/2) & (np.sqrt(3) * y + (x-1) <= 0):
+    #         # print(y - np.sqrt(3)*(x-1))
+    #         if (x <= 1/2) & (np.sqrt(3) * y + (x-1) <= -1e-7):
+    #             # print(1)
     #             pass
-    #         elif (x > 1/2) & (x - np.sqrt(3)*y >= 0) & (np.sqrt(3) * y + (x-2) < 0) & (y > 0) & (y - np.sqrt(3)*(x-1) > 0):
+    #         elif (x > 1/2) & (x - np.sqrt(3)*y >= 1e-7) & (np.sqrt(3) * y + (x-2) < -1e-7) & (y > 0) & (y - np.sqrt(3)*(x-1) > 0):
     #             coords[i, 0] -= 1
-    #         elif (np.sqrt(3) * y + (x-1) > 0) & (x - np.sqrt(3)*y < 0) & (x < 1) & (y < np.sqrt(3)/2) & (y - np.sqrt(3)*x < 0):
+    #             # print(2)
+    #         elif (np.sqrt(3) * y + (x-1) > -1e-7) & (x - np.sqrt(3)*y < 1e-7) & (x < 1) & (y < np.sqrt(3)/2) & (y - np.sqrt(3)*x < 0):
     #             coords[i, 0] -= 1/2
     #             coords[i, 1] -= np.sqrt(3)/2
-    #         elif (np.sqrt(3) * y + (x-2) >= 0) & (x >= 1):
+    #             # print(3)
+    #         elif (np.sqrt(3) * y + (x-2) >= -1e-7) & (x >= 1) & (x < 3/2):
     #             coords[i, 0] -= 3/2
     #             coords[i, 1] -= np.sqrt(3)/2
+    #             # print(4)
     #         else:
     #             to_delete.append(i)
+    #             # print(f"to_delete{coords[i]}")
         
     #     coords = np.delete(coords, to_delete, axis=0)
+    #     return coords
 
 
     def transition(self, coords):
-        boundary1 = np.sqrt(3) * coords[:, 1] + (coords[:, 0] - 1) <= 0
-        boundary2 = coords[:, 0] - np.sqrt(3) * coords[:, 1] >= 0
-        boundary3 = np.sqrt(3) * coords[:, 1] + (coords[:, 0] - 2) < 0
-        boundary4 = coords[:, 1] - np.sqrt(3) * (coords[:, 0] - 1) > 0
-        boundary5 = np.sqrt(3) * coords[:, 1] + (coords[:, 0] - 1) > 0
-        boundary6 = coords[:, 0] - np.sqrt(3) * coords[:, 1] < 0
-        boundary7 = coords[:, 1] < np.sqrt(3) / 2
-        boundary8 = coords[:, 1] - np.sqrt(3) * coords[:, 0] < 0
-        boundary9 = np.sqrt(3) * coords[:, 1] + (coords[:, 0] - 2) >= 0
+        x = coords[:, 0]
+        y = coords[:, 1]
 
-        condition1 = boundary1 & (coords[:, 0] <= 1/2)
-        condition2 = boundary2 & boundary3 & boundary4 & (coords[:, 0] > 1/2)
-        condition3 = boundary5 & boundary6 & boundary7 & boundary8 & (coords[:, 0] < 1)
-        condition4 = boundary9 & (coords[:, 0] >= 1)
+        condition1 = (x <= 1/2) & (np.sqrt(3) * y + (x-1) <= -1e-7)
+        condition2 = (x > 1/2) & (x - np.sqrt(3)*y >= 1e-7) & (np.sqrt(3) * y + (x-2) < -1e-7) & (y > 0) & (y - np.sqrt(3)*(x-1) > 0)
+        condition3 = (np.sqrt(3) * y + (x-1) > -1e-7) & (x - np.sqrt(3)*y < 1e-7) & (x < 1) & (y < np.sqrt(3)/2) & (y - np.sqrt(3)*x < 0)
+        condition4 = (np.sqrt(3) * y + (x-2) >= -1e-7) & (x >= 1) & (x < 3/2)
 
         coords[condition2, 0] -= 1
         coords[condition3, 0] -= 1/2
@@ -200,8 +215,10 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         coords[condition4, 0] -= 3/2
         coords[condition4, 1] -= np.sqrt(3)/2
 
-        mask = condition1 | condition2 | condition3 | condition4
-        coords = coords[mask]
+        to_delete = np.where(~condition1 & ~condition2 & ~condition3 & ~condition4)[0]
+
+        coords = np.delete(coords, to_delete, axis=0)
+        return coords
 
 
     def set_k_expand(self, k_set):
@@ -211,6 +228,11 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         for i, [m_1, m_2] in enumerate(self.expand_k):
             k_set[:, i+1, :]  += m_1 * G_1 + m_2 * G_2
 
+        print("Finish buliding Hamiltonian matrix!")
+        end = datetime.now()
+        print(f"End time:{end}")
+        print(f"Time cost:{end - self.begin_k}")
+
 
 # +---------------------------------------------------------+
 # | Construct the Hamiltonian matrix for a certain k point. |
@@ -218,16 +240,16 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
     def bulid_H(self, mode, point_num, k_set, k_coef, H):
         print("----------------------------------------------------------------")
         print(f"Begin buliding Hamiltonian matrix for mode {mode}!")
-        begin = datetime.now()
-        print(f"Begin time:{begin}")
+        self.begin_H = datetime.now()
+        print(f"Begin time:{self.begin_H}")
 
         for i in tqdm(range(point_num)):
             self.calculate_H_k(k_set, k_coef, H, i)
         
         print("Finish buliding Hamiltonian matrix!")
-        end = datetime.now()
-        print(f"End time:{end}")
-        print(f"Time cost:{end - begin}")
+        self.end_H = datetime.now()
+        print(f"End time:{self.end_H}")
+        print(f"Time cost:{self.end_H - self.begin_H}")
         print("----------------------------------------------------------------")
 
 
@@ -327,15 +349,15 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
 
     def cal_eigen(self, mode, H):
         print(f"Begin calculation of the eigenvalues of the Halmiltonian matrix for {mode}!")
-        begin = datetime.now()
-        print(f"Begin time:{begin}")
+        self.begin_H_cal = datetime.now()
+        print(f"Begin time:{self.begin_H_cal}")
 
         eigenvalues, eigenvectors = np.linalg.eig(H)
 
         print("End calculation of the eigenvalues of the Halmiltonian matrix!")
-        end = datetime.now()
-        print(f"End time:{end}")
-        print(f"Time cost:{end - begin}")
+        self.end_H_cal = datetime.now()
+        print(f"End time:{self.end_H_cal}")
+        print(f"Time cost:{self.end_H_cal - self.begin_H_cal}")
         print("----------------------------------------------------------------")
         
         return eigenvalues, eigenvectors
@@ -377,13 +399,8 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         self.sorted_eigenvalues = np.take_along_axis(eigenvals, sorted_indices, axis=1).squeeze()
         self.sorted_eigenvectors = np.take_along_axis(eigenvecs, sorted_indices[:, np.newaxis, :], axis=2)
         self.max_vecs = self.sorted_eigenvectors[:,:,-1]
-        print(self.sorted_eigenvalues.shape)
-        print(self.max_vecs.shape)
-
-        self.form_factor_matrix = np.dot(self.max_vecs.conj(), self.max_vecs.T).T
-        print(self.form_factor_matrix)
-
-        
+        # print(self.sorted_eigenvalues.shape)
+        # print(self.max_vecs.shape)
 
 
 # +---------------------------------------------------+
@@ -422,8 +439,8 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
 # | Calculate and plot the form factor of twisted MoTe2. |
 # +------------------------------------------------------+
     def calc_u(self):
-        # TODO
-        pass
+        self.form_factor_matrix = np.dot(self.max_vecs.conj(), self.max_vecs.T).T
+        # print(self.form_factor_matrix.shape)
 
 
     def plot_u(self):
@@ -473,23 +490,8 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         self.is_hermitian(self.H_tot_ff)
         self.eigenvals_ff, self.eigenvecs_ff = self.cal_eigen(self.plot_mode, self.H_tot_ff)
         self.process_eigen_for_ff(self.point_num_ff_tot, self.eigenvals_ff, self.eigenvecs_ff)
-        # self.calc_u()
+        self.calc_u()
         # self.plot_u()
 
 test = Moire2H('config.yaml')
 test.Hamiltonian()
-# test.parse_config()
-# test.preprocess()
-# test.set_k_within_fMBZ()
-# print(test.kpoints_all_selected)
-# test.set_k_expand()
-# print(test.kpoints_all_selected)
-# print(test.kpoints_all_coef)
-# print(test.H_tot.shape)
-# print(test.eigenvalues.shape)
-# print(test.H_tot[0])
-# print(test.H_tot[0].shape)
-# print(test.H_tot[0])
-# print(np.linalg.eigvals(test.H_tot[0]))
-# print(np.linalg.eigvals(test.H_tot[1]))
-# print(test.H_tot[0]==test.H_tot[1])

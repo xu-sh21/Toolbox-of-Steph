@@ -9,6 +9,6 @@ kpoints:
   density_for_ff: 50
 
 plot:
-  plot_mode: 'form_factor'
+  plot_mode: 'both'
   # Choice: 'band' / 'form_factor' / 'both'
   emin: -10
