@@ -4,7 +4,8 @@
 # Description: The model of this script is from the paper of Pro. Wang. For more information, please read the paper: http://arxiv.org/abs/2304.11864.
 
 ############################################################################################################################################################################
-import ast
+import os
+import csv
 import yaml
 from datetime import datetime
 import numpy as np
@@ -74,6 +75,10 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
             # Read information about plot information.
             self.plot_mode = config['plot']['plot_mode']
             self.emin = config['plot']['emin']
+
+            # Others
+            self.bandplot_path = config['others']['bandplot_path']
+            self.ffmatrix_path = config['others']['ff_matrix_path']
 
 
     def gen_kpath(self):
@@ -432,7 +437,9 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         for point in special_k_points.keys():
             plt.axvline(x=point, color='k', linestyle='--', linewidth=0.5)
         plt.xticks([point for point in special_k_points.keys()], [label for label in special_k_points.values()])
-        plt.savefig(f'./fig/dens={self.density_for_band}loop={self.k_loop}min={self.emin}.png', dpi=300) 
+        if not os.path.exists(self.bandplot_path):
+            os.makedirs(self.bandplot_path)
+        plt.savefig(f'{self.bandplot_path}/dens={self.density_for_band}loop={self.k_loop}min={self.emin}.png', dpi=300) 
 
 
 # +------------------------------------------------------+
@@ -441,7 +448,10 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
     def calc_u(self):
         self.form_factor_matrix = np.dot(self.max_vecs.conj(), self.max_vecs.T).T
         # print(self.form_factor_matrix.shape)
-
+        if not os.path.exists(self.ffmatrix_path):
+            os.makedirs(self.ffmatrix_path)
+        np.savetxt(f"{self.ffmatrix_path}/dens={self.density_for_ff}loop={self.k_loop}.csv", self.form_factor_matrix, delimiter=",")
+        # arr_loaded = np.loadtxt("array.csv", delimiter=",")
 
     def plot_u(self):
         # TODO
@@ -492,6 +502,3 @@ Description: The model of this script is from the paper of Pro. Wang. For more i
         self.process_eigen_for_ff(self.point_num_ff_tot, self.eigenvals_ff, self.eigenvecs_ff)
         self.calc_u()
         # self.plot_u()
-
-test = Moire2H('config.yaml')
-test.Hamiltonian()
