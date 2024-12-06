@@ -17,9 +17,8 @@ def parse_config(config_path):
         config_dict['params']['lr'] = float(config['params']['lr'])
         config_dict['params']['act_func'] = str(config['params']['act_func']).lower()
 
-        config_dict['params']['encoder_channels'] = config['params']['encoder_channels']
+        config_dict['params']['channels'] = config['params']['channels']
         config_dict['params']['encoder_kernel_size'] = int(config['params']['encoder_kernel_size'])
-        config_dict['params']['decoder_channels'] = config['params']['decoder_channels']
         config_dict['params']['decoder_kernel_size'] = int(config['params']['decoder_kernel_size'])
         config_dict['params']['latent_dim'] = int(config['params']['latent_dim'])
 

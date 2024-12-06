@@ -14,16 +14,15 @@ def load_model(config):
     # Device.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
     # Model.
     # Read model parameters from config_dict.
     lr = config['params']['lr']
-    encoder_channels = config['params']['encoder_channels']
-    decoder_channels = config['params']['decoder_channels']
+    channels = config['params']['channels']
     encoder_kernel_size = config['params']['encoder_kernel_size']
     decoder_kernel_size = config['params']['decoder_kernel_size']
     latent_dim = config['params']['latent_dim']
     act_func = config['params']['act_func']
-
     # Choose activation function.
     if act_func.lower() == 'relu':
         activation_fn = nn.ReLU
@@ -33,15 +32,6 @@ def load_model(config):
         activation_fn = nn.Sigmoid
     else:
         raise ValueError('Invalid activation function.')
-
-    # Check channels of encoders and decoders.
-    encoder_channels_len = len(encoder_channels)
-    decoder_channels_len = len(decoder_channels)
-    if encoder_channels_len != decoder_channels_len:
-        raise ValueError('Encoder and Decoder channels should be the same!!!')
-    channels_len = encoder_channels_len
-
-
     # Settings.
     # Choose model parameters according to dataset.
     dataset = config['settings']['dataset']
@@ -53,16 +43,17 @@ def load_model(config):
         input_dim = [32,32]
     else:
         raise ValueError('Unknown Dataset!!! Supported Datasets Are: "mnist", "cifar10"!!!')
+    
+    if channels[0] != fig_channels:
+        raise ValueError('Invalid number of channels for the given dataset.')
+
 
     # Define the model.
-    model = myVAE(fig_channels,
-                  input_dim,
-                  encoder_channels,
+    model = myVAE(input_dim,
+                  channels,
                   encoder_kernel_size,
                   latent_dim, 
-                  decoder_channels,
                   decoder_kernel_size,
-                  channels_len,
                   activation_fn)
     model.to(device)
     loss_func = loss_vae
@@ -73,10 +64,13 @@ def load_model(config):
 
 # Load the model if exists.
 def load_old_model(config):
-    model_path = config['settings']['train_dir'] + 'checkpoint_' + str(config['settings']['inference_version']) + '.pth.tar'
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model_path = config['settings']['train_dir'] + '/checkpoint_' + str(config['settings']['inference_version']) + '.pth.tar'
     if os.path.exists(model_path):
         model = torch.load(model_path)
+        loss_func = loss_vae
 
-        return model
+        return device, model, loss_func
     else:
         raise FileNotFoundError('Model Not Found!!! Please Check!!!')

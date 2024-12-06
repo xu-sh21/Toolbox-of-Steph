@@ -18,13 +18,13 @@ def main(config_path):
         begin_training(config_dict)
         device, vae_model, loss_func, optimizer = load_model(config_dict)
         if config_dict['settings']['new_model'] is False:
-            vae_model = load_old_model(config_dict)
+            vae_model, loss_func = load_old_model(config_dict)
         train_job(device, vae_model, loss_func, optimizer, config_dict, X_train, X_val, X_test)
 
     elif config_dict['settings']['is_train'] == False: # Test process.
-        begin_test(config_dict)
-        vae_model = load_old_model(config_dict)
-        test_job(vae_model, config_dict, X_test)
+        begin_test()
+        device, vae_model, loss_func = load_old_model(config_dict)
+        test_job(device, vae_model, loss_func, config_dict, X_test)
 
 
 # Parse the command line arguments (config.yaml)

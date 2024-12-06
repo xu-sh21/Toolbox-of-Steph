@@ -28,8 +28,10 @@ def load_data_mnist(data_dir):
     loaded = np.fromfile(fd, dtype=np.uint8)
     teY = loaded[8:].reshape((10000))
 
-    trX = (trX - 128.0) / 255.0
-    teX = (teX - 128.0) / 255.0
+    # trX = (trX - 128.0) / 255.0
+    # teX = (teX - 128.0) / 255.0
+    trX = trX / 255.0
+    teX = teX / 255.0
 
     return trX, trY, teX, teY
 
