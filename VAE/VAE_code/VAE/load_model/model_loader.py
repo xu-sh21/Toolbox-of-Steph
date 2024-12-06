@@ -15,6 +15,7 @@ def load_model(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Model.
+    # Read model parameters from config_dict.
     lr = config['params']['lr']
     encoder_channels = config['params']['encoder_channels']
     decoder_channels = config['params']['decoder_channels']
@@ -23,25 +24,46 @@ def load_model(config):
     latent_dim = config['params']['latent_dim']
     act_func = config['params']['act_func']
 
-    if act_func == 'relu':
+    # Choose activation function.
+    if act_func.lower() == 'relu':
         activation_fn = nn.ReLU
-    elif act_func == 'tanh':
+    elif act_func.lower() == 'tanh':
         activation_fn = nn.Tanh
-    elif act_func == 'sigmoid':
+    elif act_func.lower() == 'sigmoid':
         activation_fn = nn.Sigmoid
     else:
         raise ValueError('Invalid activation function.')
-    
-    # Settings.
-    dataset = config['settings']['dataset']
 
-    model = myVAE(encoder_channels,
-                 encoder_kernel_size,
-                 latent_dim,
-                 decoder_channels,
-                 decoder_kernel_size,
-                 activation_fn,
-                 dataset)
+    # Check channels of encoders and decoders.
+    encoder_channels_len = len(encoder_channels)
+    decoder_channels_len = len(decoder_channels)
+    if encoder_channels_len != decoder_channels_len:
+        raise ValueError('Encoder and Decoder channels should be the same!!!')
+    channels_len = encoder_channels_len
+
+
+    # Settings.
+    # Choose model parameters according to dataset.
+    dataset = config['settings']['dataset']
+    if dataset == 'mnist':
+        fig_channels = 1
+        input_dim = [28,28]
+    elif dataset == 'cifar10':
+        fig_channels = 3
+        input_dim = [32,32]
+    else:
+        raise ValueError('Unknown Dataset!!! Supported Datasets Are: "mnist", "cifar10"!!!')
+
+    # Define the model.
+    model = myVAE(fig_channels,
+                  input_dim,
+                  encoder_channels,
+                  encoder_kernel_size,
+                  latent_dim, 
+                  decoder_channels,
+                  decoder_kernel_size,
+                  channels_len,
+                  activation_fn)
     model.to(device)
     loss_func = loss_vae
     optimizer = optim.Adam(model.parameters(), lr=lr)

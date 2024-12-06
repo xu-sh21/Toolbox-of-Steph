@@ -6,24 +6,30 @@ import torch.nn as nn
 
 class myVAE(nn.Module):
     def __init__(self,
-                 encoder_channels=(32, 64),
+                 fig_channels=1,
+                 input_dim=[28, 28],
+                 encoder_channels=[32, 64],
                  encoder_kernel_size=3,
                  latent_dim=10,
-                 decoder_channels=(32, 3),
+                 decoder_channels=[32, 3],
                  decoder_kernel_size=3,
-                 activation_fn=nn.ReLU,
-                 dataset=None):
+                 channels_len=2,
+                 activation_fn=nn.ReLU):
+        # Parameter instruction:
+        # fig_channels: The number of channels of each fig, e.g. 1 for MNIST, and 3 for CIFAR10.
+        # input_dim: The dimension of input images, e.g. [28, 28] for MNIST, and [32, 32, 3] for CIFAR10.
+        # encoder_channels: The number of channels of each encoder layer.
+        # encoder_kernel_size: The size of convolution kernel in encoder.
+        # latent_dim: The dimension of latent variable.
+        # decoder_channels: The number of channels of each decoder layer.
+        # decoder_kernel_size: The size of convolution kernel in decoder.
+        # channels_len: The number of channels in encoder.
+        # activation_fn: The activation function for neural network.
         super().__init__()
 
         # Encoder part.
         encoder_layers = []
-        if dataset == 'mnist':
-            in_channels = 1
-        elif dataset == 'cifar10':
-            in_channels = 3
-        else:
-            raise ValueError('Unknown Dataset!!! Supported Datasets Are: "mnist", "cifar10"!!!')
-
+        in_channels = fig_channels
         for out_channels in encoder_channels:
             encoder_layers.extend([
                 nn.Conv2d(in_channels=in_channels, out_channels=out_channels, 
@@ -35,20 +41,15 @@ class myVAE(nn.Module):
         encoder_layers.append(nn.Flatten())
         self.encoder_part = nn.Sequential(*encoder_layers)
 
+
         # Linear part for getting mu and sigma.
-        self.get_mu = nn.Linear(in_features=encoder_channels[-1]*7*7, out_features=latent_dim)
-        self.get_sigma = nn.Linear(in_features=encoder_channels[-1]*7*7, out_features=latent_dim)
+        H_linear = int(input_dim[0] / (2 ** channels_len))
+        W_linear = int(input_dim[1] / (2 ** channels_len))
+        self.get_mu = nn.Linear(in_features=encoder_channels[-1] * H_linear * W_linear, out_features=latent_dim)
+        self.get_sigma = nn.Linear(in_features=encoder_channels[-1] * H_linear * W_linear, out_features=latent_dim)
+
 
         # Decoder part.
-        # self.decoder_part = nn.Sequential(
-        #     nn.Linear(in_features=10, out_features=512),
-        #     nn.ReLU(),
-        #     nn.Linear(in_features=512, out_features=64*7*7),
-        #     nn.Unflatten(dim=1, shape=(64, 7, 7)),
-        #     nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=1, output_padding=1), # (b, 64, 14, 14)
-        #     nn.ReLU(),
-        #     nn.ConvTranspose2d(in_channels=32, out_channels=3, kernel_size=3, stride=2, padding=1, output_padding=1) # (b, 3, 28, 28)
-        # )
         decoder_layers = [
             nn.Linear(in_features=latent_dim, out_features=encoder_channels[-1]*7*7),
             activation_fn(),
@@ -58,7 +59,7 @@ class myVAE(nn.Module):
             decoder_layers.extend([
                 nn.ConvTranspose2d(in_channels=encoder_channels[-i-1], out_channels=out_channels, 
                                    kernel_size=decoder_kernel_size, stride=2, padding=1, output_padding=1),
-                activation_fn() if i < len(decoder_channels)-1 else nn.Sigmoid()  # Sigmoid for the last layer to get values in [0, 1]
+                activation_fn() if i < len(decoder_channels)-1 else nn.Sigmoid() # Sigmoid for the last layer to get values in [0, 1]
             ])
         self.decoder_part = nn.Sequential(*decoder_layers)
 
