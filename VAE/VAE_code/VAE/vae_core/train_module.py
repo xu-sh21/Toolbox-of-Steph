@@ -74,7 +74,7 @@ def valid_single_epoch(device, model, loss_func, config, validation_data):
 
 # Save the model if it is the best model till now.
 def save_model(model, train_dir, config):
-    model_path = train_dir + f"checkpoint_{config['settings']['inference_version']}.pth.tar"
+    model_path = train_dir + f"/checkpoint_{config['settings']['inference_version']}.pth.tar"
     with open(model_path, 'wb') as fout:
         torch.save(model, fout)
 

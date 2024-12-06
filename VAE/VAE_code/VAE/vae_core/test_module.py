@@ -2,6 +2,7 @@
 #######################################################################
 import os
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 
 from load_model.data_loader import load_data
@@ -29,6 +30,8 @@ def check_dir(config):
     result_dir = config['settings']['result_dir']
     if not os.path.exists(result_dir):
         raise ValueError('[Error]: Training Directory Does Not Exist!!! Please Check!!!')
+    
+    return train_dir, result_dir
 
 
 # Inference for each epoch.
@@ -49,14 +52,16 @@ def plot_figs(num_inferences, X_inference, gen_new_fig, result_dir, config):
     plt.figure(figsize=(20, 4))
     for i in range(num_inferences):
         # Initial figs.
+        X_single_image = np.squeeze(X_inference[i], axis=0)
         ax = plt.subplot(2, num_inferences, i + 1)
-        plt.imshow(X_inference[i], cmap='gray')
+        plt.imshow(X_single_image, cmap='gray')
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
         # Generated figs.
+        simple_new_fig = np.squeeze(gen_new_fig[i], axis=0)
         ax = plt.subplot(2, num_inferences, i + 1 + num_inferences)
-        plt.imshow(gen_new_fig[i], cmap='gray')
+        plt.imshow(simple_new_fig, cmap='gray')
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
     plt.savefig(f"{result_dir}/compare_{config['settings']['model_name']}.png")
@@ -78,28 +83,16 @@ def save_result(test_loss, result_dir, config):
         f.write(f"[INFO] Test Loss {test_loss}")
 
 
-def test_job(model, config, test_data):
+def test_job(device, model, loss_func, config, test_data):
     train_dir, result_dir = check_dir(config)
     # Randomly choose test data from test dataset with a specified quantity.
     num_inferences = config['settings']['num_inferences']
-    X_inference = randomly_choose_from_test(test_data, num_inferences)
+    X_inference = randomly_choose_from_test(test_data, num_inferences).float().to(device)
     # Test circles.
-    gen_new_fig, inference_loss = inference_single_epoch(model, X_inference)
+    gen_new_fig, inference_loss = inference_single_epoch(model, loss_func, X_inference)
     # Output figs.
     plot_figs(num_inferences, X_inference, gen_new_fig, result_dir, config)
     # Print the results.
     test_loss = output_result(inference_loss, num_inferences)
     # Save the results.
     save_result(test_loss, result_dir, config)
-
-
-def test_process(config):
-    # Preprocess and begin test.
-    check(config)
-    begin_test()
-    # Load data.
-    X_train, X_val, X_test = load_data(config)
-    # Load the model.
-    vae_model = load_old_model(config)
-
-    test_job(vae_model, config, X_test)

@@ -6,45 +6,34 @@ params:
   # Epoch number.
   epoch_nums: 300
   # Learning rate.
-  lr: 0.01
+  lr: 0.001
   # Activation function (except the last layer of decoder).
   act_func: relu
 
-  # Encoder parameters.
-  # Encoder channels.
-  encoder_channels: [32, 64]
+  # Channel list.
+  channels: [1, 32]
   # Encoder kernel size.
   encoder_kernel_size: 3
-
-  # Decoder parameters.
-  # Decoder channels.
-  decoder_channels: [32, 1]
   # Decoder kernel size.
   decoder_kernel_size: 3
-
   # Latent dimension.
   latent_dim: 10
 # ----------------------------------------------------------------
 settings:
   # Training state.
-  is_train: True
+  is_train: False
   # Choose to construct a new model or use the existing one.
   new_model: True
   # Model directory.
   train_dir: '../result/model'
-
   # Inference version number.
   inference_version: 1
-
   # Directory for save training and test results.
   result_dir: '../result/result'
-
   # Dataset you want to train.
   dataset: 'mnist' #e.g. mnist/cifar10/...
-
   # Name of your model.
-  model_name: 'VAE_model'
-
+  model_name: 'VAE_model_3'
   # Number of data samples for test process.
   num_inferences: 10
 # ----------------------------------------------------------------

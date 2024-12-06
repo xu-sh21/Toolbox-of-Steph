@@ -40,5 +40,6 @@ def randomly_choose_from_test(dataset, n):
     
     random_indices = np.random.choice(dataset.shape[0], n, replace=False)
     selected_samples = dataset[random_indices]
+    selected_samples = torch.from_numpy(selected_samples)
 
     return selected_samples
